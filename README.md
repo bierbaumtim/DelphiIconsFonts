@@ -35,10 +35,25 @@ Follow these steps to get started with DelphiIconsFonts in your project:
    uses
      DelphiIconsFonts;
    ```
-2. Add and customize icons or fonts in your application:
+2. Load the required fonts in your application:
    ```pascal
-   { Example: Setting an icon }
-   MyIconControl.Icon := LoadIcon('icon_name');
+   var
+     Loader: TIconFontLoader;
+   begin
+     Application.Initialize;
+     Loader := TIconFontLoader.Create;
+     try
+       Loader.LoadFromResource('FONT_AWESOME_REGULAR');
+       Loader.LoadFromResource('FONT_AWESOME_BRANDS');
+       Loader.LoadFromResource('FONT_AWESOME_SOLID');
+
+       Application.MainFormOnTaskbar := True;
+       Application.CreateForm(TForm1, Form1);
+       Application.Run;
+     finally
+       Loader.Free;
+     end;
+   end.
    ```
 
 ## Updating Icons
@@ -51,7 +66,7 @@ To update the icons in your project, follow these steps:
 
    Example:
    ```bash
-   python update_icons.py
+   python icons_font_gen.py
    ```
 
 4. Test your application to ensure the new icons are displayed correctly.
