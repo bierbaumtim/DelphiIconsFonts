@@ -1,41 +1,65 @@
-# Delphi - Font Awesome
+# Delphi Icon Fonts Integration Example
 
-DelphiIconsFonts is a powerful repository designed to make working with icons and fonts in Delphi applications seamless and efficient. Whether you’re building modern UI applications or enhancing existing projects, this library provides a structured way to manage and integrate scalable icons and custom fonts.
+This project demonstrates how to integrate icon fonts (specifically Font Awesome) into Delphi applications **without requiring font installation on the target system**. The fonts are embedded as resources and loaded dynamically at runtime, making your applications truly portable.
 
 ## Features
 
-- **Icon Integration**: Easily embed scalable vector icons into your Delphi applications.
-- **Font Management**: Simplify the use of custom fonts in your projects.
-- **High Performance**: Optimized for fast rendering and smooth integration.
-- **Cross-Platform Compatibility**: Supports platforms like Windows, macOS, and more.
-- **Customizability**: Fully customizable icons and font sizes, styles, and colors.
+- **No System Font Installation Required**: Fonts are embedded as resources and loaded at runtime
+- **Windows-Only Implementation**: Uses Windows-specific APIs for font loading  
+- **Runtime Font Loading**: Dynamically loads OTF font files from embedded resources
+- **Reusable Components**: Includes example components for easy icon integration
+- **Font Awesome Support**: Pre-configured for Font Awesome Regular, Brands, and Solid variants
+- **Memory Management**: Proper cleanup of loaded font resources
 
-## Getting Started
+## Project Structure
 
-Follow these steps to get started with DelphiIconsFonts in your project:
+### Core Components
 
-### Prerequisites
+- **`IconFontLoaderGP.pas`** - The main implementation unit for loading font files from resources. This is the reusable component that can be integrated into other Delphi projects.
+- **`IconLabelGP.pas`** - An example component demonstrating how to use the loaded icon fonts in a custom control.
+- **`Icons.rc`** - Resource file that embeds the OTF font files into the executable.
 
-- [Delphi IDE](https://www.embarcadero.com/products/delphi) installed on your machine.
-- Basic knowledge of Delphi programming.
+### Font Files
 
-### Installation
+- `Font Awesome 6 Free-Regular-400.otf`
+- `Font Awesome 6 Free-Solid-900.otf` 
+- `Font Awesome 6 Brands-Regular-400.otf`
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/bierbaumtim/DelphiIconsFonts.git
+### Generated Units
+
+- `uFontAwesomeRegular.pas` - Constants for regular Font Awesome icons
+- `uFontAwesomeSolid.pas` - Constants for solid Font Awesome icons  
+- `uFontAwesomeBrands.pas` - Constants for brand Font Awesome icons
+
+## Prerequisites
+
+- Delphi IDE (Windows)
+- Basic knowledge of Delphi programming
+- **Windows platform only** (uses Windows-specific font loading APIs)
+
+## How It Works
+
+1. **Font Embedding**: OTF font files are embedded as `RCDATA` resources using a resource script (`Icons.rc`)
+2. **Runtime Loading**: The `TIconFontLoader` class uses Windows `AddFontMemResourceEx` API to load fonts from memory
+3. **Font Usage**: Once loaded, the fonts can be used like any system font by their font family name
+4. **Cleanup**: Fonts are properly unloaded when the application terminates
+
+## Usage
+
+### Basic Integration
+
+1. **Copy the core unit** `IconFontLoaderGP.pas` to your project
+2. **Add font resources** by creating an `Icons.rc` file with your OTF fonts:
    ```
-2. Add the necessary files to your Delphi project.
-3. Configure the required paths in your Delphi IDE.
-
-### Usage
-
-1. Import the library into your project:
+   FONT_AWESOME_REGULAR RCDATA "Font Awesome 6 Free-Regular-400.otf"
+   FONT_AWESOME_BRANDS RCDATA "Font Awesome 6 Brands-Regular-400.otf"
+   FONT_AWESOME_SOLID RCDATA "Font Awesome 6 Free-Solid-900.otf"
+   ```
+3. **Compile the resource file** and include it in your project:
    ```pascal
-   uses
-     DelphiIconsFonts;
+   {$R icons.RES}
    ```
-2. Load the required fonts in your application:
+4. **Load fonts at application startup**:
    ```pascal
    var
      Loader: TIconFontLoader;
@@ -56,39 +80,62 @@ Follow these steps to get started with DelphiIconsFonts in your project:
    end.
    ```
 
-## Updating Icons
+### Using Icons in Components
 
-To update the icons in your project, follow these steps:
+After loading, you can use the fonts in any component by setting the font name:
 
-1. **Copy OTF Files**: Ensure that the `.otf` (OpenType Font) files for the updated icons are added to the appropriate directory in your project.
-2. **Recompile Resources**: Recompile the resource files in your Delphi project to include the updated icons.
-3. **Run the Python Script**: Execute the provided Python script to process and integrate the new icons into your project. This step ensures that the icons are properly registered and available for use.
+```pascal
+// Example using a TLabel
+Label1.Font.Name := TMFontAwesomeSolidIcons.FONT_FAMILY;
+Label1.Font.Size := 24;
+Label1.Caption := WideChar($F007); // Font Awesome user icon
+```
 
-   Example:
-   ```bash
-   python icons_font_gen.py
-   ```
+### Example Component Usage
 
-4. Test your application to ensure the new icons are displayed correctly.
+The project includes `TIconLabel` component as an example:
 
-## Examples
+```pascal
+IconLabel1.FontName := TMFontAwesomeSolidIcons.FONT_FAMILY;
+IconLabel1.FontSize := 32;
+IconLabel1.Icon := WideChar($F007); // User icon
+IconLabel1.FontColor := clBlue;
+```
 
-Check out the `examples` folder in the repository for detailed usage scenarios and sample projects.
+## Updating Font Awesome Icons
 
-## Contributing
+To update to newer Font Awesome versions:
 
-Contributions are welcome! To contribute:
+1. **Replace OTF files** with newer Font Awesome font files
+2. **Update the resource file** (`Icons.rc`) if filenames changed
+3. **Recompile resources**: `brcc32 Icons.rc` to generate `icons.RES`
+4. **Regenerate constants** (optional): Use the Python script `icon_font_consts_gen.py` to generate updated icon constant units
 
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b feature-name`).
-3. Commit your changes (`git commit -m "Add feature"`).
-4. Push to the branch (`git push origin feature-name`).
-5. Open a Pull Request.
+## Key Classes
 
-## Issues
+### TIconFontLoader
 
-If you encounter any issues or have feature requests, please open an [issue](https://github.com/bierbaumtim/DelphiIconsFonts/issues).
+The main class for loading fonts from resources:
+
+- `LoadFromResource(ResName: string)` - Loads a font from an embedded resource
+- Automatic memory management and cleanup
+- Prevents loading the same font multiple times
+
+### TIconLabel (Example Component)
+
+A custom control demonstrating icon font usage:
+
+- `Icon: WideChar` - The icon character to display
+- `FontName: string` - Name of the loaded icon font
+- `FontSize: Integer` - Size of the icon
+- `FontColor: TColor` - Color of the icon
+
+## Limitations
+
+- **Windows Only**: Uses Windows-specific APIs (`AddFontMemResourceEx`)
+- **Runtime Dependency**: Fonts must be loaded before use
+- **Memory Usage**: Fonts are kept in memory while loaded
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE). Feel free to use, modify, and distribute it.
+This project is provided as an example for educational purposes. Font Awesome fonts are subject to their own licensing terms.
